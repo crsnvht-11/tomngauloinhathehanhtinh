@@ -1,0 +1,215 @@
+/*
+Single-file React component for a small "Bán Bánh" website.
+How to use:
+1. Create a React app (Vite or Create React App).
+2. Install TailwindCSS and configure according to Tailwind docs.
+3. Place this file in src/, import and render it in App.jsx (or replace App.jsx content).
+
+This component uses Tailwind classes (no external images bundled). Images use Unsplash placeholders — replace with your own photos for production.
+
+Features included:
+- Hero section with subtle heart animation
+- Product grid with sample cakes
+- Product quick view & recipe modal with ingredients + steps
+- Simple cart (add/remove) and checkout simulation
+- Responsive layout
+
+Customize texts, prices, images, and recipes as you like.
+*/
+
+import React, { useState } from "react";
+
+const SAMPLE_CAKES = [
+  {
+    id: 1,
+    name: "Bánh Bông Lan Socola Nhân Kem Phủ",
+    price: 169000,
+    img: "https://images.unsplash.com/photo-1542826438-6c5f8f8ed6a1?q=80&w=1200&auto=format&fit=crop&ixlib=rb-4.0.3&s=1",
+    recipe: {
+      servings: 8,
+      ingredients: [
+        "200g bột mì đa dụng",
+        "50g cacao",
+        "200g đường",
+        "4 quả trứng (tách lòng trắng/lòng đỏ)",
+        "120ml sữa tươi",
+        "100g bơ",
+        "Kem tươi + đường (phủ và trang trí)",
+      ],
+      steps: [
+        "Làm nóng lò 175°C. Rây bột mì và cacao chung.",
+        "Đánh lòng đỏ với đường, thêm bơ chảy và sữa.",
+        "Đánh lòng trắng tới bông cứng rồi trộn nhẹ vào hỗn hợp lòng đỏ.",
+        "Đổ khuôn, nướng 30-35 phút hoặc tới khi que tăm sạch.",
+        "Làm kem tươi, phủ lên bánh khi bánh nguội. Trang trí theo sở thích.",
+      ],
+      tip: "Dùng chocolate đen 55% để tăng vị đậm; làm lạnh bánh trước khi cắt sẽ dễ dàng hơn.",
+    },
+  },
+  {
+    id: 2,
+    name: "Bánh Phô Mai Táo Hồi Xuân",
+    price: 199000,
+    img: "https://images.unsplash.com/photo-1543779505-7e6cf2f1b4a2?q=80&w=1200&auto=format&fit=crop&ixlib=rb-4.0.3&s=2",
+    recipe: {
+      servings: 8,
+      ingredients: [
+        "250g phô mai kem",
+        "200g kem tươi",
+        "100g đường",
+        "2 quả táo thái lát mỏng",
+        "Đế bánh (bánh quy nghiền + bơ)",
+      ],
+      steps: [
+        "Làm đế bánh bằng cách trộn bơ + bánh quy nghiền và nén vào khuôn.",
+        "Trộn phô mai, kem tươi và đường đến mịn.",
+        "Đổ hỗn hợp lên đế, xếp táo lên trên.",
+        "Làm lạnh ít nhất 4 giờ trước khi dùng.",
+      ],
+      tip: "Ngâm táo với một chút nước cốt chanh để táo không bị thâm.",
+    },
+  },
+  {
+    id: 3,
+    name: "Bông Lan Truyền Thống Vị Matcha",
+    price: 159000,
+    img: "https://images.unsplash.com/photo-1542827631-9c7b0bfc7d6b?q=80&w=1200&auto=format&fit=crop&ixlib=rb-4.0.3&s=3",
+    recipe: {
+      servings: 6,
+      ingredients: ["150g bột mì", "3 quả trứng", "100g đường", "1 thìa bột matcha", "60ml dầu ăn"],
+      steps: [
+        "Trộn bột và matcha; đánh lòng đỏ với đường và dầu.",
+        "Đánh bông lòng trắng, trộn nhẹ nhàng.",
+        "Nướng 25-30 phút ở 170°C.",
+      ],
+      tip: "Rây matcha để tránh cục, chọn matcha chất lượng để bánh thơm tự nhiên.",
+    },
+  },
+];
+
+function formatVND(n) {
+  return n.toLocaleString("vi-VN") + " ₫";
+}
+
+export default function BanBanhOnePage() {
+  const [selected, setSelected] = useState(null); // selected product for modal
+  const [cart, setCart] = useState([]);
+  const [query, setQuery] = useState("");
+
+  const addToCart = (p) => {
+    setCart((c) => {
+      const found = c.find((x) => x.id === p.id);
+      if (found) return c.map((x) => (x.id === p.id ? { ...x, qty: x.qty + 1 } : x));
+      return [...c, { ...p, qty: 1 }];
+    });
+  };
+
+  const removeFromCart = (id) => setCart((c) => c.filter((x) => x.id !== id));
+  const changeQty = (id, delta) =>
+    setCart((c) => c.map((x) => (x.id === id ? { ...x, qty: Math.max(1, x.qty + delta) } : x)));
+
+  const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
+
+  const filtered = SAMPLE_CAKES.filter((p) => p.name.toLowerCase().includes(query.toLowerCase()));
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-pink-50 to-white text-gray-800">
+      <header className="max-w-6xl mx-auto p-6 flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-full bg-pink-200 flex items-center justify-center text-2xl font-bold">🍰</div>
+          <div>
+            <h1 className="text-2xl font-extrabold">Tiệm Bánh Ngọt - Sweet & Cozy</h1>
+            <p className="text-sm text-gray-500">Bánh tươi hàng ngày · Giao tận nơi · Công thức siêu ngon</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-4">
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Tìm bánh..."
+            className="px-3 py-2 border rounded-lg shadow-sm focus:outline-none"
+          />
+          <button
+            onClick={() => alert('Xin chúc mừng — demo đặt hàng! Đến checkout để hoàn tất.')}
+            className="px-4 py-2 bg-pink-500 text-white rounded-lg shadow hover:bg-pink-600"
+          >
+            Đặt ngay
+          </button>
+          <div className="relative">
+            <button
+              onClick={() => setSelected({ cartView: true })}
+              className="px-3 py-2 border rounded-lg bg-white"
+            >
+              Giỏ hàng ({cart.reduce((s, i) => s + i.qty, 0)})
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <main className="max-w-6xl mx-auto p-6">
+        <section className="flex flex-col md:flex-row gap-6 items-center bg-white rounded-2xl p-6 shadow">
+          <div className="flex-1">
+            <h2 className="text-3xl md:text-4xl font-extrabold mb-2">Bánh hôm nay — yêu ngay từ miếng đầu tiên</h2>
+            <p className="text-gray-600 mb-4">Công thức do đầu bếp của chúng tôi thử nghiệm nhiều lần để đảm bảo vị thơm, mềm và cân bằng.</p>
+            <div className="flex gap-3">
+              <button onClick={() => window.scrollTo({ top: 600, behavior: 'smooth' })} className="px-4 py-2 bg-pink-500 text-white rounded-lg">Xem sản phẩm</button>
+              <button onClick={() => setSelected(SAMPLE_CAKES[0])} className="px-4 py-2 border rounded-lg">Xem công thức</button>
+            </div>
+          </div>
+          <div className="w-full md:w-1/3 relative">
+            <img src={SAMPLE_CAKES[0].img} alt="hero cake" className="rounded-xl shadow-lg w-full object-cover h-56 md:h-72" />
+            <div className="absolute -right-4 -top-4 animate-pulse">
+              <div className="p-3 rounded-full bg-white shadow">❤️</div>
+            </div>
+          </div>
+        </section>
+
+        <section className="mt-8">
+          <h3 className="text-xl font-bold mb-4">Sản phẩm nổi bật</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filtered.map((p) => (
+              <article key={p.id} className="bg-white p-4 rounded-2xl shadow hover:shadow-lg transition">
+                <img src={p.img} alt={p.name} className="w-full h-44 object-cover rounded-lg mb-3" />
+                <h4 className="font-semibold text-lg">{p.name}</h4>
+                <p className="text-pink-600 font-bold mt-1">{formatVND(p.price)}</p>
+                <div className="mt-3 flex gap-2">
+                  <button onClick={() => setSelected(p)} className="px-3 py-2 border rounded-lg">Xem công thức</button>
+                  <button onClick={() => addToCart(p)} className="px-3 py-2 bg-pink-500 text-white rounded-lg">Thêm vào giỏ</button>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="mt-10 bg-white p-6 rounded-2xl shadow">
+          <h3 className="text-xl font-bold mb-3">Vì sao chọn chúng tôi?</h3>
+          <ul className="grid grid-cols-1 md:grid-cols-3 gap-4 text-gray-700">
+            <li className="p-3 border rounded">Công thức chuẩn — thử nghiệm kỹ lưỡng</li>
+            <li className="p-3 border rounded">Nguyên liệu tươi — không chất bảo quản</li>
+            <li className="p-3 border rounded">Giao nhanh — đóng gói chuyên nghiệp</li>
+          </ul>
+        </section>
+      </main>
+
+      <footer className="max-w-6xl mx-auto p-6 text-gray-600">
+        <div className="flex flex-col md:flex-row justify-between items-center">
+          <p>© {new Date().getFullYear()} Tiệm Bánh Ngọt — Sáng tạo bởi bạn.</p>
+          <p>Liên hệ: +84 9xx xxx xxx · email@tiembanh.example</p>
+        </div>
+      </footer>
+
+      {/* Modal */}
+      {selected && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="bg-white rounded-2xl w-full max-w-3xl p-6 relative overflow-auto max-h-[90vh]">
+            <button onClick={() => setSelected(null)} className="absolute top-4 right-4 p-2 rounded-full border">✕</button>
+            {selected.cartView ? (
+              <div>
+                <h3 className="text-xl font-bold mb-4">Giỏ hàng</h3>
+                {cart.length === 0 ? (
+                  <p>Giỏ hàng trống — thêm vài chiếc bánh thôi nào! 🧁</p>
+                ) : (
+                  <div>
+                    {cart.map((it) => (
+                      <div key={it.id} className="flex items-center gap-4 border-b py-3">
+                        <img src={it.img} alt={it.name} className="w-20 h-20 obj
